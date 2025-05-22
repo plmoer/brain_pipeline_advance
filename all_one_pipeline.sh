@@ -18,7 +18,7 @@
 
 #!/bin/bash
 start_time=`date +%s`
-regType="intra" #registration type: atlas, intra, or raw 
+regType="raw" #registration type: atlas, intra, or raw 
 srcDir='/Users/peil2/Desktop/brain/raw_image' #source directory of raw dicom images
 tmpDir='/Users/peil2/Desktop/brain/tmp_image' #temporary directory saving intermediate results
 outDir='/Users/peil2/Desktop/brain/output' #output directory to store registered images, masks, and segmentations

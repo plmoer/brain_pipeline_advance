@@ -32,12 +32,13 @@ elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
     if [ ! -d $outDir/$pid ]; then
       mkdir -p $outDir/$pid
     fi
+    echo 
 
     #######get the available modality in this folder
     modality=() #empty modality
     for entry in "$folder"/* #for each modality having full path
     do
-        temp_mod=${entry#"$folder/"}
+        temp_mod=${entry#"$folder/"} 
         if [[ $temp_mod == *"_t1.nii.gz"* ]]; then
             cur_mod="_t1"
         elif [[ $temp_mod == *"_t1ce.nii.gz"* ]]; then
@@ -46,8 +47,13 @@ elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
             cur_mod="_t2"
         elif [[ $temp_mod == *"_flair.nii.gz"* ]]; then
             cur_mod="_flair"
+        else
+            cur_mod=""
         fi
-        modality+=("${cur_mod[@]}")
+
+        if [[ ! " $modality " =~ " $cur_mod " ]]; then
+          modality+=("$cur_mod")
+        fi
     done
 
     if [[ ${modality[@]} == *_t1ce* ]]; then #if t1ce exist
@@ -57,6 +63,7 @@ elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
     else
         ref=${modality[0]} #take the first element as t1ce
     fi
+    ref="${ref// /}" #remove space if it exists
 
     info="...Phase 6: reverse images  #$number: $pid"
     echo $info
@@ -71,6 +78,7 @@ elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
         # n4Path=$folder/$n4$pid$sMod$suffix
         aff3=$tempDir/$pid/$sAff$pid$sMod$mat
         revPath=$folder/$prefix$pid$sMod$suffix
+        echo "inPath: $inPath, n4Path: $n4Path, aff3: $aff3, revPath: $revPath"
 
         /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -a -m NMI -i $n4Path $inPath -o $aff3 -ia-image-centers -n 100x50x10 -dof 6
         /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -rf $n4Path -ri LINEAR -rm $inPath $revPath -r $aff3
@@ -89,16 +97,15 @@ elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
     aff3=$tempDir/$pid/$sAff$pid$ref$mat
     /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -rf $n4Path -ri NN -rm $segPath $outPath -r $aff3
 
-    # if [ $regType = "intra" ]; then
       info="...Phase 8, reverse brain mask #$number: $pid"
       echo $info
       old_maskPath=$folder/$pid$sMask$suffix
       n4Path=$tempDir/$pid/$sReg$pid$sMod$suffix
       aff4=$tempDir/$pid/$sReg$pid$sMod$mat
       new_maskPath=$folder/$pid$sMask$suffix
+      echo "aff4: $aff4"
       /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -a -m NMI -i $n4Path $old_maskPath -o $aff4 -ia-image-centers -n 100x50x10 -dof 6
       /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -rf $n4Path -ri NN -rm $old_maskPath $new_maskPath -r $aff4
-    # fi
 
     ((number++))
   done
@@ -108,7 +115,7 @@ else
   echo "=============== Error ==============: "$regType" Only accept 'atlas', 'raw', and 'intra'!"
 fi
 
-rm -rf $tempDir
+# rm -rf $tempDir
 
 end_time=`date +%s`
 echo ".....It takes `expr $end_time - $start_time` s to finish the task....."

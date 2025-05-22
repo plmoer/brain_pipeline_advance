@@ -33,8 +33,8 @@ do
 
     for subfolder in $folder/*; do #access each modality
         for dcmfile in $subfolder/*; do
-            echo '------------'$dcmfile
-            echo '++++++++++++'$folder
+            # echo '------------'$dcmfile
+            # echo '++++++++++++'$folder
             # /opt/CaPTk/1.8.0/CaPTk-1.8.0.bin Utilities.cwl -d2n -i $dcmfile -o $folder #convert dcm to nifti
             /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./Utilities -d2n -i $dcmfile -o $folder #convert dcm to nifti
             break 1
@@ -60,21 +60,33 @@ do
 
 
     for sourceFile in $folder/*.nii.gz; do #access each modality
-        if [[ $sourceFile == *$pid"-PRET1_"*".nii.gz" ]]; then
-            modality='_t1.nii.gz'
-            echo $modality
-        elif [[ $sourceFile == *$pid"-T1POST_"*".nii.gz" ]]; then
+        if [[ $sourceFile == *$pid"_t1ce_"*".nii.gz" ]]; then
             modality='_t1ce.nii.gz'
             echo $modality
-        elif [[ $sourceFile == *$pid"-T2_"*".nii.gz" ]]; then
+        elif [[ $sourceFile == *$pid"_t1_"*".nii.gz" ]]; then
+            modality='_t1.nii.gz'
+            echo $modality
+        elif [[ $sourceFile == *$pid"_t2_"*".nii.gz" ]]; then
             modality='_t2.nii.gz'
             echo $modality
-        elif [[ $sourceFile == *$pid"-T2FLR_"*".nii.gz" ]]; then
+        elif [[ $sourceFile == *$pid"_flair_"*".nii.gz" ]]; then
             modality='_flair.nii.gz'
             echo $modality
+        # if [[ $sourceFile == *$pid"-PRET1_"*".nii.gz" ]]; then
+        #     modality='_t1.nii.gz'
+        #     echo $modality
+        # elif [[ $sourceFile == *$pid"-T1POST_"*".nii.gz" ]]; then
+        #     modality='_t1ce.nii.gz'
+        #     echo $modality
+        # elif [[ $sourceFile == *$pid"-T2_"*".nii.gz" ]]; then
+        #     modality='_t2.nii.gz'
+        #     echo $modality
+        # elif [[ $sourceFile == *$pid"-T2FLR_"*".nii.gz" ]]; then
+        #     modality='_flair.nii.gz'
+            # echo $modality
         fi
         dst_nifti=$outDir/$pid/$sRaw$pid$modality
-        /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./Utilities -or RAI -i $sourceFile -o $dst_nifti #orientation change
+        /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./Utilities -or $orientation -i $sourceFile -o $dst_nifti #orientation change
         jasonFile=$sourceFile
         jasonFile=${jasonFile/.nii.gz/.json}
         rm $sourceFile #delete the temprary file .nii.gz
