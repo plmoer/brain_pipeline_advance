@@ -18,7 +18,7 @@
 
 #!/bin/bash
 start_time=`date +%s`
-regType="raw" #registration type: atlas, intra, or raw 
+regType="raw" #registration type: atlas, raw, or intra
 srcDir='/Users/peil2/Desktop/brain/raw_image' #source directory of raw dicom images
 tmpDir='/Users/peil2/Desktop/brain/tmp_image' #temporary directory saving intermediate results
 outDir='/Users/peil2/Desktop/brain/output' #output directory to store registered images, masks, and segmentations
@@ -33,14 +33,11 @@ bash ./batch_bias_registration.sh $regType $tmpDir $outDir
 echo '------------Skull Stripping------------------'
 python3 test_raw_mask.py $outDir
 
-
 echo '------------Brain extraction-----------------'
 bash ./batch_multiplication.sh $outDir
 
-
 echo '------------Brain tumor segmentation---------'
 python3 test_raw_seg.py $outDir
-
 
 echo '------------Reverse registration ---------------'
 bash ./batch_reverse.sh $regType $tmpDir $outDir

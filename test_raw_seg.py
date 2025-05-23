@@ -74,11 +74,12 @@ def loadModel(sModelName, num_channel=4, num_class=1, num_ndf=16):
     model = UNet(num_channel, num_class, num_ndf)
     # model = torch.nn.DataParallel(model)
     if bGPU == True:
-        ckpt = torch.load(os.path.join(modelDir, sModelName))
+        ckpt = torch.load(os.path.join(modelDir, sModelName), weights_only=True)
     else:
         ckpt = torch.load(
             os.path.join(modelDir, sModelName),
             map_location=lambda storage, loc: storage,
+            weights_only=True,
         )
     model.load_state_dict(ckpt["model_state_dict"])
 

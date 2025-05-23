@@ -25,6 +25,41 @@ sTemp='temp_'
 
 
 if [[ $regType = "atlas" ]]; then
+  for folder in $outDir/*
+  do
+    pid=${folder#"$outDir/"}  #get patient id
+    if [ ! -d $outDir/$pid ]; then
+      mkdir -p $outDir/$pid
+    fi
+    echo 
+
+    #######get the available modality in this folder
+    modality=() #empty modality
+    for entry in "$folder"/* #for each modality having full path
+    do
+        temp_mod=${entry#"$folder/"} 
+        if [[ $temp_mod == *"_t1.nii.gz"* ]]; then
+            cur_mod="_t1"
+        elif [[ $temp_mod == *"_t1ce.nii.gz"* ]]; then
+            cur_mod="_t1ce"
+        elif [[ $temp_mod == *"_t2.nii.gz"* ]]; then
+            cur_mod="_t2"
+        elif [[ $temp_mod == *"_flair.nii.gz"* ]]; then
+            cur_mod="_flair"
+        else
+            cur_mod=""
+        fi
+
+        if [[ ! " $modality " =~ " $cur_mod " ]]; then
+          modality+=("$cur_mod")
+        fi
+    done
+    for sMod in ${modality[@]}
+    do
+      atlasPath=$folder/'atlas_'$pid$sMod$suffix
+      rm -rf $atlasPath
+    done
+  done
   echo " ******************* Complete! *******************"
 elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
   for folder in $outDir/*

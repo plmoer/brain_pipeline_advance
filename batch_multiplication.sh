@@ -28,7 +28,7 @@ do
     for modPath in $folder/*
     do 
       maskPath=$folder/$pid$mask$suffix
-      if [[ $modPath != $maskPath ]]; then
+      if [[ $modPath != $maskPath && "$modPath" != *atlas_* ]]; then
          fslmaths $modPath -mul $maskPath $modPath
       fi
 

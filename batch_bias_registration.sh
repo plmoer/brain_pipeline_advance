@@ -18,7 +18,7 @@ suffix='.nii.gz' #format extension
 number=1
 n4='n4_'
 sRaw='raw_'
-# t1ce='_t1ce'
+sAtlas='atlas_'
 mat='.mat'
 
 
@@ -125,27 +125,21 @@ do
       aff1=$folder/$n4$pid$sMod$mat
       aff2=$folder/$pid$ref$mat
       tarPath=$outDir/$pid/$pid$sMod$suffix
+      atlasPath=$outDir/$pid/$sAtlas$pid$sMod$suffix
       cp $reg2Path $tarPath
-      # echo "pidPath: $pidPath"
-      # echo "aff1: $aff1"
-      # echo "aff2: $aff2"
-      # echo "tarPath: $tarPath"
-      # /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./Preprocessing -i $reg2Path -o $tarPath -rIA $aff2 
-      # echo "modality: $modality, aff1: $aff1, aff2: $aff2"
+      cp $reg2Path $atlasPath
     fi
 	done
 
-  info="...Phase 5: clean data  #$number: $pid"
-  echo $info
-	for sMod in ${modality[@]}
-	do
-      n4Path=$folder/$n4$pid$sMod$suffix
-      aff1=$folder/$n4$pid$sMod$mat
-      # rm $aff1
-	done
-
-  aff2=$folder/$pid$ref$mat
-  # rm $aff2
+ #  info="...Phase 5: clean data  #$number: $pid"
+ #  echo $info
+	# for sMod in ${modality[@]}
+	# do
+ #      n4Path=$folder/$n4$pid$sMod$suffix
+ #      aff1=$folder/$n4$pid$sMod$mat
+	# done
+	#
+ #  aff2=$folder/$pid$ref$mat
 
   printf "\n"
 
