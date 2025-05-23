@@ -11,7 +11,7 @@ outDir=$3
 # atlasPath='atlas_reference.nii.gz'
 # interPath='inter_reference.nii.gz'
 suffix='.nii.gz' #format extension
-prefix='' #format extension
+prefix='rev_' #format extension
 
 number=1
 n4='n4_'
@@ -21,6 +21,7 @@ mat='.mat'
 sSeg='_seg'
 sOut='_seg'
 sMask='_mask'
+sTemp='temp_'
 
 
 if [[ $regType = "atlas" ]]; then
@@ -69,19 +70,19 @@ elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
     echo $info
     for sMod in ${modality[@]}
     do
-        inPath=$folder/$pid$sMod$suffix
+        inPath=$folder/'atlas_'$pid$sMod$suffix
         if [ $regType = "raw" ]; then
           n4Path=$tempDir/$pid/$n4$pid$sMod$suffix
         else
           n4Path=$tempDir/$pid/$sReg$pid$sMod$suffix
         fi
-        # n4Path=$folder/$n4$pid$sMod$suffix
         aff3=$tempDir/$pid/$sAff$pid$sMod$mat
         revPath=$folder/$prefix$pid$sMod$suffix
-        echo "inPath: $inPath, n4Path: $n4Path, aff3: $aff3, revPath: $revPath"
+        tempPath=$tempDir/$pid/$sTemp$pid$sMod$suffix
 
-        /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -a -m NMI -i $n4Path $inPath -o $aff3 -ia-image-centers -n 100x50x10 -dof 6
-        /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -rf $n4Path -ri LINEAR -rm $inPath $revPath -r $aff3
+        /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./Preprocessing -i $inPath -rFI $n4Path -o $tempPath -reg affine -rIA $aff3 -rME NCC-2x2x2 -rIS 1 -rNI 100,50,5
+        /applications/captk_1.8.1.app/contents/resources/bin/./preprocessing -i $inPath -rFI $n4Path -o $revPath -reg affine  -rIA $aff3 -rID $inPath
+        
     done
     printf '\n'
 
@@ -95,7 +96,7 @@ elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
       n4Path=$tempDir/$pid/$sReg$pid$ref$suffix
     fi
     aff3=$tempDir/$pid/$sAff$pid$ref$mat
-    /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -rf $n4Path -ri NN -rm $segPath $outPath -r $aff3
+    /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./Preprocessing  -i $segPath -o $outPath -reg affine -rFI $n4Path -rIA $aff3 -rID $segPath -rSg 1
 
       info="...Phase 8, reverse brain mask #$number: $pid"
       echo $info
@@ -103,10 +104,23 @@ elif [[ $regType = "raw" ]]  ||  [[ $regType = "intra" ]]; then
       n4Path=$tempDir/$pid/$sReg$pid$sMod$suffix
       aff4=$tempDir/$pid/$sReg$pid$sMod$mat
       new_maskPath=$folder/$pid$sMask$suffix
-      echo "aff4: $aff4"
-      /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -a -m NMI -i $n4Path $old_maskPath -o $aff4 -ia-image-centers -n 100x50x10 -dof 6
-      /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./greedy -d 3 -rf $n4Path -ri NN -rm $old_maskPath $new_maskPath -r $aff4
 
+      /Applications/CaPTk_1.8.1.app/Contents/Resources/bin/./Preprocessing  -i $old_maskPath -o $new_maskPath -reg affine -rFI $n4Path -rIA $aff3 -rID $old_maskPath -rSg 1
+
+      info="...Phase 9, reverse the brain image #$number: $pid, and clean temporary data"
+      echo $info
+      for sMod in ${modality[@]}
+      do
+        new_maskPath=$folder/$pid$sMask$suffix
+        inPath=$folder/$prefix$pid$sMod$suffix
+        outPath=$folder/$pid$sMod$suffix
+        fslmaths $inPath -mul $new_maskPath $outPath
+        
+        atlasPath=$folder/'atlas_'$pid$sMod$suffix
+        rm -rf $inPath
+        rm -rf $atlasPath
+
+      done
     ((number++))
   done
 
@@ -115,7 +129,7 @@ else
   echo "=============== Error ==============: "$regType" Only accept 'atlas', 'raw', and 'intra'!"
 fi
 
-# rm -rf $tempDir
+rm -rf $tempDir
 
 end_time=`date +%s`
 echo ".....It takes `expr $end_time - $start_time` s to finish the task....."
